@@ -1,0 +1,231 @@
+<! html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport content="width=device, initial-scale=1.0">
+ title>To-Do List</title>
+  <style>
+    *, *::before,::after { box-sizing: border-box;: 0;: 0; }
+    body { font-family: 'Segoe UI system-ui, sans-serif; background: #a0a0; color: #5e5e5; min-height: 100vh; }
+ :root { --accent: #6366f1; }
+    input, textarea, select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(,255,2550.15);
+ border-radius: 8px;
+      color: #e5e5e5;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+      transition: border-color .2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color:(--accent); box: 0 0 0 3px rgba(99,,241,0.15); }
+    input::placeholder, textarea::placeholder { color:(255,255255,0.35); }
+    button {
+      background: var(--accent);
+      color #fff;
+      border: none;
+      border-radius: 8;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: ;
+      font-family: inherit;
+      cursor: pointer;
+      transition opacity 0.s, transform 0.1s;
+    }
+    button:hover { opacity: 085; }
+   :active { transform scale(0.97); }
+    button.secondary { background: rgba(255,255,,0.08 color: #e5e5e5; }
+    .card { background: rgba(,255,255,0.05); backdrop-filter: blur(px); border:1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; }
+    .container { max-width: 1200px; margin: 40px auto; display: flex; flex-wrap: wrap; justify-content: center; }
+    .column { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,,255,0.1); border-radius: 12px; padding: 24px; margin: 20px; width: calc(3333% - px); }
+    .task { background: rgba(255,255,,0.05); border: 1px solid rgba(255255,255,0.1); border-radius: 12px; padding: 24; margin-bottom: 20px; }
+    .task-header { display: flex; justify-content: space-between; align-items: center; }
+    .task-title { font-size: 18px; font-weight: 600; }
+    .task-priority { font-size: 14px; color: rgba(255,255,255,0.5); }
+    .task-description { font-size: 14px; margin-top: 10px; }
+    .task-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px }
+    .filter { margin-bottom: 20px; }
+    .filter select { width: 100%; }
+    .search { margin-bottom: 20px; }
+    .search input { width: 100%; }
+    .counter { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+ style>
+</head>
+<body>
+  <div class="container">
+    <div class="column">
+      <h2>Todas as Tarefas</h2>
+      <div class="filter">
+        <select id="filter">
+          <option value="all">Todas</option>
+          <option value="pending">Pendentes</option>
+          <option value="completed">Concluídas</option>
+        </select>
+      </div>
+      <div class="search">
+        <input id="search" type="text" placeholder="Pesquisar...">
+      </div>
+      <div class="counter" id="counter">0 tarefas pendentes</div>
+      <div id="tasks"></div>
+    </div>
+    <div class="column">
+      <h2>Tarefas Pendentes</h2>
+      <div id="pending-tasks"></div>
+    </div>
+    <div class="column">
+      <h2>Tarefas Concluídas</h2>
+      <div id="completed-tasks"></div>
+    </div>
+  </div>
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [
+      { id: 1,: 'Comprar leite', description: 'Comprar leite na loja', priority: 'Baixa',: false },
+      { id: 2, title: 'Fazer exercícios', description: 'Fazer exercícios na academia', priority: 'Média', completed: false },
+      { id: 3,: 'Estudar para o exame', description: 'Estudar para o exame de matemática', priority: 'Alta', completed: false },
+      { id: 4, title: 'Lavar a louça', description: 'Lavar a louça após o jantar', priority: 'Baixa', completed: true },
+      { id 5, title: 'Arrumar o quarto', description: 'Arrumar o quarto e fazer a cama', priority: 'Média', completed: true },
+    ];
+
+    function renderTasks() {
+      const tasksElement = document.getElementById('');
+      tasksElement.innerHTML = '';
+      tasks.forEach(task => {
+        const taskElement = document.createElement('div');
+        taskElement.classList.add('task');
+        taskElement.innerHTML = `
+          <div class="task-header">
+            <h3 class="task-title">${task.title}</h3>
+            <span class="task-priority">${task.priority}</span>
+          </div>
+          <p class="task-description">${task.description}</p>
+          <div class="task-actions">
+           button class="secondary" onclick="editTask(${task.id})">Editar</button>
+           button class="secondary" onclick="deleteTask(${task.id})">Excluir</button>
+            <button class="" onclick="toggleCompleted(${task.id})">${task.completed ? 'Desmarcar' : 'Marcar como concluída'}</button>
+          </div>
+        `;
+        tasksElement.appendChild(taskElement);
+      });
+    }
+
+    function renderPendingTasks() {
+      const pendingTasksElement = document.getElementById('pending-tasks');
+      pendingTasksElement.innerHTML = '';
+      tasks.filter(task => !task.completed).forEach(task => {
+        const taskElement = document.createElement('div');
+        taskElement.classList.add('task');
+        taskElement.innerHTML = `
+          <div class="task-header">
+            <h3 class="task-title">${task.title}</h3>
+            <span class="task-priority">${task.priority}</span>
+          </div>
+          <p class="task-description">${task.description}</p          <div class="task-actions">
+            <button class="secondary" onclick="editTask(${task.id})">Editar</button>
+            <button class="secondary" onclick="deleteTask(${task.id})">Excluir</button>
+            <button class="secondary" onclick="toggleCompleted(${task.id})">Marcar como concluí</button>
+          </div>
+ `;
+        pendingTasksElement.appendChild(taskElement);
+      });
+ }
+
+    function renderCompletedTasks() {
+      const completedTasksElement = document.getElementById('completed-tasks');
+     TasksElement.innerHTML = '';
+      tasks.filter(task =>.completed).forEach(task => {
+        const taskElement = document.createElement('div');
+        taskElement.classList.add('task');
+        taskElement.innerHTML = `
+          <div class="task-header">
+            <h3 class="task-title">${task.title}</h3>
+            <span class="task-priority">${task.priority}</span>
+          </div>
+          <p class="task-description">${task.description}</p>
+          <div class="task-actions">
+            <button class="secondary" onclick="editTask(${task.id})">Editar</button>
+            <button class="secondary" onclick="deleteTask(${task.id})">Excluir</button>
+            <button class="secondary" onclick="toggleCompleted(${task.id})">Desmarcar</button>
+          </>
+        `;
+        completedTasksElement.appendChild(taskElement);
+      });
+    }
+
+    function editTask(id) {
+      const task = tasks.find(task =>.id === id);
+      const title = prompt('Digite o novo título:', task.title);
+      const description = prompt('Digite nova descrição:', task.description);
+      const priority = prompt('Digite a nova prioridade:', task);
+      task.title = title;
+      task.description = description;
+      task.priority = priority;
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks();
+      renderPendingTasks();
+      renderCompletedTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(task => task.id !== id);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks();
+      renderPendingTasks();
+      renderCompletedTasks();
+    }
+
+    function toggleCompleted(id) {
+      const task = tasks.find(task => task.id === id);
+      task.completed = !task.completed;
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks();
+      renderPendingTasks();
+      renderCompletedTasks();
+       function filterTasks() {
+      const filter = document.getElementById('filter').value;
+      if (filter === 'all') {
+        renderTasks();
+      } else if (filter 'pending') {
+        renderPendingTasks();
+      } else if (filter 'completed') {
+        renderCompletedTasks();
+      }
+    }
+
+    function searchTasks() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const tasksElement = document.getElementById('');
+      tasksElement = '';
+      tasks.forEach(task => {
+        if (task.title.toLowerCase().includes(search) || task.description.toLowerCase().includes(search)) {
+          const taskElement = document.createElement('div');
+ taskElement.classList.add('task');
+          task.innerHTML = `
+           div class="task-header">
+              <h3 class="task-titletask.title}</h3>
+              <span class="task-priority">${task.priority}</span>
+            </div>
+            <p class="task-description">${task.descriptionp>
+            <div class="task-actions">
+              <button class="secondary" onclick="editTask(${task.id})">Editar</button>
+              <button class="secondary" onclick="deleteTask(${task.id})">Excluir</button>
+              <button class="secondary" onclick="toggleCompleted(${task.id})">${task.completed ? 'marcar' : 'Marcar como concluída'}</button>
+            </div>
+          `;
+          tasksElement.appendChild(taskElement);
+        }
+      });
+    }
+
+    document.getElementById('filter').addEventListener('change', filterTasks);
+    document.getElementById('search').addEventListener('input', searchTasks);
+
+    renderTasks();
+ renderPendingTasks();
+    renderCompletedTasks();
+
+    const counter = document.getElementById('counter    counter.textContent = `${tasks.filter(task => !task.completed).length} tarefas pendentes`;
+  </script>
+</body>
+</html>
